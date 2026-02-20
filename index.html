@@ -104,7 +104,7 @@ textarea {
 <input type="text" id="primeiraMensalidade">
 
 <label>Bolsa</label>
-<select id="bolsa">
+<select id="bolsa" onchange="verificarBolsa()">
     <option>60% + 10%</option>
     <option>70% + 10%</option>
     <option>Outra</option>
@@ -116,7 +116,7 @@ textarea {
 <input type="text" id="demaisMensalidades">
 
 <label>Como nos conheceu</label>
-<select id="origem">
+<select id="origem" onchange="verificarOrigem()">
     <option>Candidato veio ao polo</option>
     <option>Base pessoal</option>
     <option>Arrastão de base</option>
@@ -136,10 +136,9 @@ textarea {
 </div>
 
 <script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwSppBi7nRh82pEgw8ncmhx9noIly0tQFC1wNYVJuBCyv2gpu05nr7QKQqt5hfF-7sD/exec";
 
-const WEB_APP_URL = "COLE_AQUI_SEU_LINK_DO_APPS_SCRIPT";
-
-// ================= MÁSCARA CPF =================
+// ----- Máscara CPF -----
 function mascaraCPF(campo) {
     let v = campo.value.replace(/\D/g, '');
     if (v.length > 11) v = v.slice(0,11);
@@ -149,18 +148,19 @@ function mascaraCPF(campo) {
     campo.value = v;
 }
 
-// ================= FORMATAR TELEFONE =================
+// ----- Formatar Telefone -----
 function formatarTelefone(numero) {
     numero = numero.replace(/\D/g,'');
     if (numero.length === 11) {
         return numero.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+    } else if (numero.length === 10) {
+        return numero.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
     }
     return numero;
 }
 
-// ================= BUSCAR ALUNO =================
+// ----- Buscar Aluno -----
 function buscarAluno() {
-
     const cpf = document.getElementById("cpf").value.trim();
     const status = document.getElementById("status");
 
@@ -174,43 +174,79 @@ function buscarAluno() {
     status.className = "status";
 
     fetch(`${WEB_APP_URL}?cpf=${cpf}`)
-    .then(response => response.json())
-    .then(data => {
+    .then(response => response.text())
+    .then(text => {
+        let data;
 
-        if (data && data.nome) {
-
-            document.getElementById("nome").value = data.nome;
-            document.getElementById("telefone").value = formatarTelefone(data.telefone || "");
-            document.getElementById("curso").value = data.areaInteresse || "";
-
-            status.innerHTML = "Aluno encontrado!";
-            status.className = "status sucesso";
-
-        } else {
-
-            status.innerHTML = "Aluno não encontrado.";
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            status.innerHTML = "Erro: resposta inválida do servidor.";
             status.className = "status erro";
+            return;
         }
 
+        if (!data.nome) {
+            status.innerHTML = "Aluno não encontrado.";
+            status.className = "status erro";
+            return;
+        }
+
+        let nome = data.nome.trim();
+        let telefone = data.telefone ? data.telefone.trim() : "";
+
+        // Se telefone já veio preenchido corretamente
+        if (telefone) {
+            telefone = formatarTelefone(telefone);
+        } else {
+            // Tenta extrair do final do nome
+            const telefoneRegex = /(\(?\d{2}\)?\s?\d{4,5}-?\d{4})$/;
+            const match = nome.match(telefoneRegex);
+
+            if (match) {
+                telefone = formatarTelefone(match[0]);
+                nome = nome.replace(telefoneRegex, "").trim();
+            }
+        }
+
+        document.getElementById("nome").value = nome;
+        document.getElementById("telefone").value = telefone;
+        document.getElementById("curso").value = data.areaInteresse || "";
+
+        status.innerHTML = "Aluno encontrado!";
+        status.className = "status sucesso";
     })
-    .catch(error => {
-        console.error(error);
-        status.innerHTML = "Erro ao buscar aluno.";
+    .catch(err => {
+        console.error(err);
+        status.innerHTML = "Erro ao buscar aluno. Verifique o Web App.";
         status.className = "status erro";
     });
 }
 
-// ================= GERAR TEMPLATE =================
-function gerarTemplate() {
+// ----- Bolsa -----
+function verificarBolsa() {
+    document.getElementById("bolsaManual").style.display =
+        (document.getElementById("bolsa").value === "Outra") ? "block" : "none";
+}
 
+// ----- Origem -----
+function verificarOrigem() {
+    document.getElementById("origemManual").style.display =
+        (document.getElementById("origem").value === "Outra") ? "block" : "none";
+}
+
+// ----- Gerar Template -----
+function gerarTemplate() {
     const nome = document.getElementById("nome").value.trim();
     const candidato = document.getElementById("candidato").value.trim();
     const curso = document.getElementById("curso").value.trim();
     const modalidade = document.getElementById("modalidade").value;
     const primeira = document.getElementById("primeiraMensalidade").value.trim();
-    const bolsa = document.getElementById("bolsa").value;
+    const bolsaSelect = document.getElementById("bolsa").value;
+    const bolsaManual = document.getElementById("bolsaManual").value.trim();
     const demais = document.getElementById("demaisMensalidades").value.trim();
-    const origem = document.getElementById("origem").value;
+    const origemSelect = document.getElementById("origem").value;
+    const origemManual = document.getElementById("origemManual").value.trim();
     const telefone = document.getElementById("telefone").value.trim();
 
     if (!nome || !candidato || !curso || !primeira || !demais) {
@@ -218,33 +254,37 @@ function gerarTemplate() {
         return;
     }
 
+    const bolsaFinal = (bolsaSelect === "Outra") ? bolsaManual : bolsaSelect;
+    const origemFinal = (origemSelect === "Outra") ? origemManual : origemSelect;
+
     const template = `
 NOME COMPLETO: ${nome}
 CANDIDATO: ${candidato}
 CURSO: ${curso}
 MODALIDADE: ${modalidade}
 PRIMEIRA MENSALIDADE: ${primeira}
-BOLSA: ${bolsa}
+BOLSA: ${bolsaFinal}
 DEMAIS MENSALIDADES: ${demais}
 POLO: Caucaia
-COMO NOS CONHECEU: ${origem}
+COMO NOS CONHECEU: ${origemFinal}
 TELEFONE COM DDD: ${telefone}
 TUTOR: Fabricio Benigno 🥷
 
 Rede Pocci 🚀🚀
 `;
 
-    document.getElementById("resultado").value = template;
+    document.getElementById("resultado").value = template.trim();
 }
 
-// ================= COPIAR =================
+// ----- Copiar Template -----
 function copiar() {
-    const texto = document.getElementById("resultado");
-    texto.select();
-    document.execCommand("copy");
-    alert("Template copiado!");
-}
+    const texto = document.getElementById("resultado").value;
+    if (!texto) return alert("Nada para copiar.");
 
+    navigator.clipboard.writeText(texto)
+    .then(() => alert("Template copiado!"))
+    .catch(() => alert("Erro ao copiar."));
+}
 </script>
 
 </body>
