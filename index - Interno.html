@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Interno - Gerador de Matrícula</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #004aad, #007bff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 600px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input, select, button, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+button {
+    background: #004aad;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #00337a;
+}
+
+.status {
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.sucesso { color: green; }
+.erro { color: red; }
+
+textarea {
+    height: 220px;
+    resize: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Gerador de Template de Matrícula</h2>
+
+<div id="status" class="status"></div>
+
+<label>CPF</label>
+<input type="text" id="cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)">
+
+<button onclick="buscarAluno()">Buscar Aluno</button>
+
+<label>Nome Completo</label>
+<input type="text" id="nome">
+
+<label>Candidato</label>
+<input type="text" id="candidato">
+
+<label>Curso</label>
+<input type="text" id="curso">
+
+<label>Modalidade</label>
+<select id="modalidade">
+    <option>EAD-semi presencial</option>
+    <option>Híbrido</option>
+    <option>Pós</option>
+    <option>Técnico</option>
+    <option>Profissionalizante</option>
+</select>
+
+<label>Primeira Mensalidade</label>
+<input type="text" id="primeiraMensalidade">
+
+<label>Bolsa</label>
+<select id="bolsa" onchange="verificarBolsa()">
+    <option>60% + 10%</option>
+    <option>70% + 10%</option>
+    <option>Outra</option>
+</select>
+
+<input type="text" id="bolsaManual" placeholder="Digite a bolsa manual" style="display:none;">
+
+<label>Demais Mensalidades</label>
+<input type="text" id="demaisMensalidades">
+
+<label>Como nos conheceu</label>
+<select id="origem" onchange="verificarOrigem()">
+    <option>Candidato veio ao polo</option>
+    <option>Base pessoal</option>
+    <option>Arrastão de base</option>
+    <option>Outra</option>
+</select>
+
+<input type="text" id="origemManual" placeholder="Digite a origem manual" style="display:none;">
+
+<label>Telefone</label>
+<input type="text" id="telefone" placeholder="(00) 00000-0000" readonly>
+
+<button onclick="gerarTemplate()">Gerar Template</button>
+
+<textarea id="resultado" readonly></textarea>
+
+<button onclick="copiar()">Copiar Template</button>
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwSppBi7nRh82pEgw8ncmhx9noIly0tQFC1wNYVJuBCyv2gpu05nr7QKQqt5hfF-7sD/exec";
+
+// ----- Máscara CPF -----
+function mascaraCPF(campo) {
+    let v = campo.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0,11);
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    campo.value = v;
+}
+
+// ----- Formatar Telefone -----
+function formatarTelefone(numero) {
+    numero = numero.replace(/\D/g,'');
+    if (numero.length > 11) numero = numero.slice(0,11);
+    numero = numero.replace(/^(\d{2})(\d)/g,"($1) $2");
+    numero = numero.replace(/(\d{5})(\d{4})$/,"$1-$2");
+    return numero;
+}
+
+// ----- Buscar Aluno -----
+function buscarAluno() {
+    const cpf = document.getElementById("cpf").value.trim();
+    const status = document.getElementById("status");
+
+    if (!cpf) {
+        status.innerHTML = "Digite um CPF.";
+        status.className = "status erro";
+        return;
+    }
+
+    status.innerHTML = "Buscando...";
+    status.className = "status";
+
+    fetch(`${WEB_APP_URL}?cpf=${cpf}`)
+    .then(response => response.text())
+    .then(text => {
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            status.innerHTML = "Erro: resposta inválida do servidor.";
+            status.className = "status erro";
+            return;
+        }
+
+        if (data.nome) {
+            let nome = data.nome.trim();
+            let telefone = data.telefone ? data.telefone.trim() : "";
+
+            // Separar telefone grudado no nome
+            const telefoneRegex = /(\d{8,11})$/;
+            const match = nome.match(telefoneRegex);
+            if (match) {
+                telefone = formatarTelefone(match[0]);
+                nome = nome.replace(telefoneRegex, '').trim();
+            }
+
+            document.getElementById("nome").value = nome;
+            document.getElementById("telefone").value = telefone;
+            document.getElementById("curso").value = data.areaInteresse || "";
+
+            status.innerHTML = "Aluno encontrado!";
+            status.className = "status sucesso";
+        } else {
+            status.innerHTML = "Aluno não encontrado.";
+            status.className = "status erro";
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        status.innerHTML = "Erro ao buscar aluno. Verifique o Web App.";
+        status.className = "status erro";
+    });
+}
+
+// ----- Bolsa -----
+function verificarBolsa() {
+    const bolsa = document.getElementById("bolsa").value;
+    const campo = document.getElementById("bolsaManual");
+    campo.style.display = (bolsa === "Outra") ? "block" : "none";
+}
+
+// ----- Origem -----
+function verificarOrigem() {
+    const origem = document.getElementById("origem").value;
+    const campo = document.getElementById("origemManual");
+    campo.style.display = (origem === "Outra") ? "block" : "none";
+}
+
+// ----- Gerar Template -----
+function gerarTemplate() {
+    const nome = document.getElementById("nome").value.trim();
+    const candidato = document.getElementById("candidato").value.trim();
+    const curso = document.getElementById("curso").value.trim();
+    const modalidade = document.getElementById("modalidade").value;
+    const primeira = document.getElementById("primeiraMensalidade").value.trim();
+    const bolsaSelect = document.getElementById("bolsa").value;
+    const bolsaManual = document.getElementById("bolsaManual").value.trim();
+    const demais = document.getElementById("demaisMensalidades").value.trim();
+    const origemSelect = document.getElementById("origem").value;
+    const origemManual = document.getElementById("origemManual").value.trim();
+    const telefone = document.getElementById("telefone").value.trim();
+
+    if (!nome || !candidato || !curso || !primeira || !demais) {
+        alert("Preencha todos os campos obrigatórios antes de gerar o template.");
+        return;
+    }
+
+    const bolsaFinal = (bolsaSelect === "Outra") ? bolsaManual : bolsaSelect;
+    const origemFinal = (origemSelect === "Outra") ? origemManual : origemSelect;
+
+    const template = `
+NOME COMPLETO: ${nome}
+CANDIDATO: ${candidato}
+CURSO: ${curso}
+MODALIDADE: ${modalidade}
+PRIMEIRA MENSALIDADE: ${primeira}
+BOLSA: ${bolsaFinal}
+DEMAIS MENSALIDADES: ${demais}
+POLO: Caucaia
+COMO NOS CONHECEU: ${origemFinal}
+TELEFONE COM DDD: ${telefone}
+TUTOR: Fabricio Benigno 🥷
+
+Rede Pocci 🚀🚀
+`;
+
+    document.getElementById("resultado").value = template;
+}
+
+// ----- Copiar Template -----
+function copiar() {
+    const texto = document.getElementById("resultado");
+    texto.select();
+    document.execCommand("copy");
+    alert("Template copiado!");
+}
+</script>
+
+</body>
+</html>
