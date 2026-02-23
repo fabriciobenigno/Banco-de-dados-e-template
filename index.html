@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Administrativo</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#004aad">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -14,34 +20,30 @@ body{
   background:linear-gradient(135deg,#004aad,#007bff);
   display:flex;
   justify-content:center;
-  padding:20px;
+  padding:40px;
 }
 
 .container{
   background:#fff;
   width:100%;
   max-width:780px;
-  padding:25px;
+  padding:30px;
   border-radius:16px;
   box-shadow:0 15px 40px rgba(0,0,0,.2);
 }
 
 h1{
   color:#004aad;
-  margin-bottom:20px;
-  font-size:22px;
-}
-
-input,select,button{
-  font-size:15px;
+  margin-bottom:25px;
 }
 
 input,select{
   width:100%;
-  padding:12px;
+  padding:11px;
   margin-bottom:12px;
   border-radius:8px;
   border:1px solid #ccc;
+  font-size:14px;
 }
 
 input:focus,select:focus{
@@ -50,7 +52,7 @@ input:focus,select:focus{
 }
 
 button{
-  padding:12px;
+  padding:10px 16px;
   border:none;
   border-radius:8px;
   cursor:pointer;
@@ -58,6 +60,7 @@ button{
   color:#fff;
   font-weight:600;
   transition:0.3s;
+  margin-right:8px;
 }
 
 button:hover{
@@ -66,23 +69,18 @@ button:hover{
 
 .buscar-area{
   display:flex;
+  align-items:center;
   gap:10px;
   margin-bottom:15px;
-}
-
-.buscar-area input{
-  flex:1;
 }
 
 .status{
   font-weight:600;
   font-size:14px;
-  display:block;
-  margin-top:5px;
 }
 
-.status.sucesso{color:#1e7e34}
-.status.erro{color:#c82333}
+.status.sucesso{color:#1e7e34;}
+.status.erro{color:#c82333;}
 
 .section-title{
   margin-top:20px;
@@ -93,20 +91,13 @@ button:hover{
 
 textarea{
   width:100%;
-  height:200px;
+  height:220px;
   margin-top:15px;
   padding:12px;
   border-radius:10px;
   border:1px solid #ccc;
   resize:none;
   font-size:14px;
-}
-
-/* MOBILE */
-@media(max-width:600px){
-  .buscar-area{
-    flex-direction:column;
-  }
 }
 </style>
 </head>
@@ -118,46 +109,40 @@ textarea{
 <h1>Painel Administrativo</h1>
 
 <div class="buscar-area">
-  <input 
-    id="buscaCpf" 
-    type="tel"
-    inputmode="numeric"
-    maxlength="14"
-    placeholder="Digite o CPF para buscar">
+  <input id="buscaCpf" type="tel" inputmode="numeric" maxlength="14" placeholder="Digite o CPF para buscar">
   <button onclick="buscarAluno()">Buscar</button>
+  <span id="statusBusca" class="status"></span>
 </div>
-
-<span id="statusBusca" class="status"></span>
 
 <div class="section-title">Informações Administrativas</div>
 
 <select id="modalidade">
-  <option value="">Selecione Modalidade</option>
-  <option>EAD-Semi presencial</option>
-  <option>Híbrido</option>
-  <option>Pós Graduação</option>
-  <option>Técnico</option>
-  <option>Profissionalizante</option>
+<option value="">Selecione Modalidade</option>
+<option>EAD-Semi presencial</option>
+<option>Híbrido</option>
+<option>Pós Graduação</option>
+<option>Técnico</option>
+<option>Profissionalizante</option>
 </select>
 
 <select id="bolsa" onchange="verificarBolsa()">
-  <option value="">Selecione Bolsa</option>
-  <option>60% + 10%</option>
-  <option>70% + 10%</option>
-  <option value="outra">Outra</option>
+<option value="">Selecione Bolsa</option>
+<option>60% + 10%</option>
+<option>70% + 10%</option>
+<option value="outra">Outra</option>
 </select>
 
 <input id="bolsaOutra" placeholder="Digite outra bolsa" style="display:none;">
 
-<input id="primeiraMensalidade" inputmode="numeric" placeholder="Primeira Mensalidade">
-<input id="demaisMensalidades" inputmode="numeric" placeholder="Demais Mensalidades">
+<input id="primeiraMensalidade" placeholder="Primeira Mensalidade">
+<input id="demaisMensalidades" placeholder="Demais Mensalidades">
 
 <select id="comoConheceu" onchange="verificarConheceu()">
-  <option value="">Como nos conheceu</option>
-  <option>Candidato veio ao polo</option>
-  <option>Base pessoal</option>
-  <option>Arrastão de base</option>
-  <option value="outra">Outra</option>
+<option value="">Como nos conheceu</option>
+<option>Candidato veio ao polo</option>
+<option>Base pessoal</option>
+<option>Arrastão de base</option>
+<option value="outra">Outra</option>
 </select>
 
 <input id="conheceuOutra" placeholder="Digite outra origem" style="display:none;">
@@ -165,168 +150,141 @@ textarea{
 <div class="section-title">Templates</div>
 <button onclick="gerarTemplate1()">Gerar Template 1</button>
 <button onclick="gerarTemplate2()">Gerar Template 2</button>
-<button onclick="copiarTemplate()">Copiar</button>
 
-<textarea id="resultado"></textarea>
+<textarea id="resultado" readonly></textarea>
 
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzzmst4tMJOHtskHDkgb-Pd8sUrdTCzxnc0HAZ_qXBrl_PDSNkPnWzTotIEv8eCgaR5tg/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzzmst4tMJOHtskHDkgb-Pd8sUrdTCzxnc0HAZ_qXBrl_PDSNkPnWzTotIEv8eCgaR5tg/exec";
 
-let aluno = null;
-let ultimaBusca = "";
-const status = document.getElementById("statusBusca");
+let aluno=null;
+let ultimaBusca="";
+const status=document.getElementById("statusBusca");
 
-/* Máscara CPF + busca automática */
-buscaCpf.addEventListener("input", function(){
+/* CPF máscara + auto busca */
+buscaCpf.addEventListener("input",function(){
+let v=this.value.replace(/\D/g,"");
+v=v.replace(/(\d{3})(\d)/,"$1.$2");
+v=v.replace(/(\d{3})(\d)/,"$1.$2");
+v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+this.value=v;
 
-  let v = this.value.replace(/\D/g,"");
-
-  v = v.replace(/(\d{3})(\d)/,"$1.$2");
-  v = v.replace(/(\d{3})(\d)/,"$1.$2");
-  v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
-
-  this.value = v;
-
-  const cpfNumerico = v.replace(/\D/g,"");
-
-  if(cpfNumerico.length === 11 && cpfNumerico !== ultimaBusca){
-    ultimaBusca = cpfNumerico;
-    buscarAluno();
-  }
+let cpfNumerico=v.replace(/\D/g,"");
+if(cpfNumerico.length===11 && cpfNumerico!==ultimaBusca){
+ultimaBusca=cpfNumerico;
+buscarAluno();
+}
 });
 
-/* Buscar ao apertar ENTER */
-buscaCpf.addEventListener("keypress", function(e){
-  if(e.key === "Enter"){
-    buscarAluno();
-  }
+/* ENTER */
+buscaCpf.addEventListener("keypress",function(e){
+if(e.key==="Enter")buscarAluno();
 });
 
-/* Buscar aluno */
 async function buscarAluno(){
-
-  if(!buscaCpf.value){
-    status.textContent = "⚠ Digite um CPF";
-    status.className = "status erro";
-    return;
-  }
-
-  status.textContent = "Buscando...";
-  status.className = "status";
-
-  try{
-    const response = await fetch(WEB_APP_URL + "?cpf=" + buscaCpf.value);
-    aluno = await response.json();
-
-    if(!aluno || aluno.erro){
-      status.textContent = "❌ Não encontrado";
-      status.className = "status erro";
-      return;
-    }
-
-    status.textContent = "✔ Aluno encontrado";
-    status.className = "status sucesso";
-
-  }catch{
-    status.textContent = "❌ Erro na conexão";
-    status.className = "status erro";
-  }
+if(!buscaCpf.value){
+status.textContent="⚠ Digite um CPF";
+status.className="status erro";
+return;
 }
 
-/* Mostrar campos extras */
+status.textContent="Buscando...";
+status.className="status";
+
+try{
+const response=await fetch(WEB_APP_URL+"?cpf="+buscaCpf.value);
+aluno=await response.json();
+
+if(!aluno){
+status.textContent="❌ Não encontrado";
+status.className="status erro";
+return;
+}
+
+status.textContent="✔ Aluno encontrado";
+status.className="status sucesso";
+
+}catch{
+status.textContent="❌ Erro na conexão";
+status.className="status erro";
+}
+}
+
+/* Extras */
 function verificarBolsa(){
-  bolsaOutra.style.display = bolsa.value === "outra" ? "block" : "none";
+bolsaOutra.style.display=bolsa.value==="outra"?"block":"none";
 }
-
 function verificarConheceu(){
-  conheceuOutra.style.display = comoConheceu.value === "outra" ? "block" : "none";
+conheceuOutra.style.display=comoConheceu.value==="outra"?"block":"none";
 }
 
-/* Máscara monetária */
+/* Moeda */
 function formatarMoeda(campo){
-  campo.addEventListener("input", function(){
-    let valor = this.value.replace(/\D/g,"");
-    if(valor === ""){
-      this.value = "";
-      return;
-    }
-    valor = (parseInt(valor,10)/100).toFixed(2).replace(".",",");
-    this.value = valor;
-  });
+campo.addEventListener("input",function(){
+let valor=this.value.replace(/\D/g,"");
+if(valor===""){this.value="";return;}
+valor=(parseInt(valor)/100).toFixed(2).replace(".",",");
+this.value=valor;
+});
 }
-
 formatarMoeda(primeiraMensalidade);
 formatarMoeda(demaisMensalidades);
 
-/* Templates permanecem iguais ao seu original */
-function gerarTemplate1(){
-  if(!aluno){
-    status.textContent = "⚠ Busque um aluno primeiro";
-    status.className = "status erro";
-    return;
-  }
+/* Copiar automático */
+function copiarAutomatico(texto){
+navigator.clipboard.writeText(texto);
+status.textContent="✔ Gerado e copiado automaticamente";
+status.className="status sucesso";
+setTimeout(()=>status.textContent="",3000);
+}
 
-  resultado.value =
-`NOME COMPLETO: ${aluno.Nome}
+/* Templates */
+function gerarTemplate1(){
+if(!aluno){status.textContent="⚠ Busque um aluno primeiro";status.className="status erro";return;}
+
+const texto=`NOME COMPLETO: ${aluno.Nome}
 CANDIDATO: ${aluno.Nome}
 CURSO: ${aluno.Curso}
 MODALIDADE: ${modalidade.value}
 PRIMEIRA MENSALIDADE: ${primeiraMensalidade.value}
-BOLSA: ${bolsa.value === "outra" ? bolsaOutra.value : bolsa.value}
+BOLSA: ${bolsa.value==="outra"?bolsaOutra.value:bolsa.value}
 DEMAIS MENSALIDADES: ${demaisMensalidades.value}
 POLO: Caucaia
-COMO NOS CONHECEU: ${comoConheceu.value === "outra" ? conheceuOutra.value : comoConheceu.value}
+COMO NOS CONHECEU: ${comoConheceu.value==="outra"?conheceuOutra.value:comoConheceu.value}
 TELEFONE COM DDD: ${aluno.Telefone}
 TUTOR: Fabricio Benigno 🥷
 
 Rede Pocci 🚀🚀`;
 
-  status.textContent = "✔ Template 1 gerado";
-  status.className = "status sucesso";
+resultado.value=texto;
+copiarAutomatico(texto);
 }
 
 function gerarTemplate2(){
-  if(!aluno){
-    status.textContent = "⚠ Busque um aluno primeiro";
-    status.className = "status erro";
-    return;
-  }
+if(!aluno){status.textContent="⚠ Busque um aluno primeiro";status.className="status erro";return;}
 
-  let dataFormatada = "";
-  if(aluno["Data de Nascimento"]){
-    dataFormatada = new Date(aluno["Data de Nascimento"]).toLocaleDateString("pt-BR");
-  }
+let data="";
+if(aluno["Data de Nascimento"]){
+data=new Date(aluno["Data de Nascimento"]).toLocaleDateString("pt-BR");
+}
 
-  resultado.value =
-`Nome: ${aluno.Nome}
+const texto=`Nome: ${aluno.Nome}
 Telefone: ${aluno.Telefone}
 CPF: ${aluno.CPF}
 Email: ${aluno.Email}
-Data de Nascimento: ${dataFormatada}
+Data de Nascimento: ${data}
 Endereço: ${aluno.Endereço}
 Cep: ${aluno.CEP}
 Curso: ${aluno.Curso}`;
 
-  status.textContent = "✔ Template 2 gerado";
-  status.className = "status sucesso";
+resultado.value=texto;
+copiarAutomatico(texto);
 }
 
-function copiarTemplate(){
-  if(!resultado.value){
-    status.textContent = "⚠ Nada para copiar";
-    status.className = "status erro";
-    return;
-  }
-
-  resultado.select();
-  document.execCommand("copy");
-
-  status.textContent = "✔ Copiado com sucesso";
-  status.className = "status sucesso";
-
-  setTimeout(()=> status.textContent="",3000);
+/* Service Worker */
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("sw.js");
 }
 </script>
 
