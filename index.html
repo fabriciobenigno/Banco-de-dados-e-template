@@ -1,289 +1,332 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Interno - Gerador de Matrícula</title>
+<title>Painel Administrativo</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #004aad, #007bff);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Roboto',sans-serif}
+
+body{
+  background:linear-gradient(135deg,#004aad,#007bff);
+  display:flex;
+  justify-content:center;
+  padding:20px;
 }
 
-.container {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 95%;
-    max-width: 600px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+.container{
+  background:#fff;
+  width:100%;
+  max-width:780px;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 15px 40px rgba(0,0,0,.2);
 }
 
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
+h1{
+  color:#004aad;
+  margin-bottom:20px;
+  font-size:22px;
 }
 
-input, select, button, textarea {
-    width: 100%;
-    padding: 10px;
-    margin-top: 8px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 14px;
+input,select,button{
+  font-size:15px;
 }
 
-button {
-    background: #004aad;
-    color: white;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    transition: 0.3s;
+input,select{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 
-button:hover {
-    background: #00337a;
+input:focus,select:focus{
+  outline:none;
+  border-color:#007bff;
 }
 
-.status {
-    text-align: center;
-    font-weight: 500;
-    margin-bottom: 10px;
+button{
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#007bff;
+  color:#fff;
+  font-weight:600;
+  transition:0.3s;
 }
 
-.sucesso { color: green; }
-.erro { color: red; }
+button:hover{
+  background:#0056b3;
+}
 
-textarea {
-    height: 220px;
-    resize: none;
+.buscar-area{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.buscar-area input{
+  flex:1;
+}
+
+.status{
+  font-weight:600;
+  font-size:14px;
+  display:block;
+  margin-top:5px;
+}
+
+.status.sucesso{color:#1e7e34}
+.status.erro{color:#c82333}
+
+.section-title{
+  margin-top:20px;
+  margin-bottom:10px;
+  font-weight:700;
+  color:#004aad;
+}
+
+textarea{
+  width:100%;
+  height:200px;
+  margin-top:15px;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  resize:none;
+  font-size:14px;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  .buscar-area{
+    flex-direction:column;
+  }
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
-<h2>Gerador de Template de Matrícula</h2>
 
-<div id="status" class="status"></div>
+<h1>Painel Administrativo</h1>
 
-<label>CPF</label>
-<input type="text" id="cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)">
+<div class="buscar-area">
+  <input 
+    id="buscaCpf" 
+    type="tel"
+    inputmode="numeric"
+    maxlength="14"
+    placeholder="Digite o CPF para buscar">
+  <button onclick="buscarAluno()">Buscar</button>
+</div>
 
-<button onclick="buscarAluno()">Buscar Aluno</button>
+<span id="statusBusca" class="status"></span>
 
-<label>Nome Completo</label>
-<input type="text" id="nome">
+<div class="section-title">Informações Administrativas</div>
 
-<label>Candidato</label>
-<input type="text" id="candidato">
-
-<label>Curso</label>
-<input type="text" id="curso">
-
-<label>Modalidade</label>
 <select id="modalidade">
-    <option>EAD-semi presencial</option>
-    <option>Híbrido</option>
-    <option>Pós</option>
-    <option>Técnico</option>
-    <option>Profissionalizante</option>
+  <option value="">Selecione Modalidade</option>
+  <option>EAD-Semi presencial</option>
+  <option>Híbrido</option>
+  <option>Pós Graduação</option>
+  <option>Técnico</option>
+  <option>Profissionalizante</option>
 </select>
 
-<label>Primeira Mensalidade</label>
-<input type="text" id="primeiraMensalidade">
-
-<label>Bolsa</label>
 <select id="bolsa" onchange="verificarBolsa()">
-    <option>60% + 10%</option>
-    <option>70% + 10%</option>
-    <option>Outra</option>
+  <option value="">Selecione Bolsa</option>
+  <option>60% + 10%</option>
+  <option>70% + 10%</option>
+  <option value="outra">Outra</option>
 </select>
 
-<input type="text" id="bolsaManual" placeholder="Digite a bolsa manual" style="display:none;">
+<input id="bolsaOutra" placeholder="Digite outra bolsa" style="display:none;">
 
-<label>Demais Mensalidades</label>
-<input type="text" id="demaisMensalidades">
+<input id="primeiraMensalidade" inputmode="numeric" placeholder="Primeira Mensalidade">
+<input id="demaisMensalidades" inputmode="numeric" placeholder="Demais Mensalidades">
 
-<label>Como nos conheceu</label>
-<select id="origem" onchange="verificarOrigem()">
-    <option>Candidato veio ao polo</option>
-    <option>Base pessoal</option>
-    <option>Arrastão de base</option>
-    <option>Outra</option>
+<select id="comoConheceu" onchange="verificarConheceu()">
+  <option value="">Como nos conheceu</option>
+  <option>Candidato veio ao polo</option>
+  <option>Base pessoal</option>
+  <option>Arrastão de base</option>
+  <option value="outra">Outra</option>
 </select>
 
-<input type="text" id="origemManual" placeholder="Digite a origem manual" style="display:none;">
+<input id="conheceuOutra" placeholder="Digite outra origem" style="display:none;">
 
-<label>Telefone</label>
-<input type="text" id="telefone" placeholder="(00) 00000-0000" readonly>
+<div class="section-title">Templates</div>
+<button onclick="gerarTemplate1()">Gerar Template 1</button>
+<button onclick="gerarTemplate2()">Gerar Template 2</button>
+<button onclick="copiarTemplate()">Copiar</button>
 
-<button onclick="gerarTemplate()">Gerar Template</button>
+<textarea id="resultado"></textarea>
 
-<textarea id="resultado" readonly></textarea>
-
-<button onclick="copiar()">Copiar Template</button>
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwSppBi7nRh82pEgw8ncmhx9noIly0tQFC1wNYVJuBCyv2gpu05nr7QKQqt5hfF-7sD/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzzmst4tMJOHtskHDkgb-Pd8sUrdTCzxnc0HAZ_qXBrl_PDSNkPnWzTotIEv8eCgaR5tg/exec";
 
-// ----- Máscara CPF -----
-function mascaraCPF(campo) {
-    let v = campo.value.replace(/\D/g, '');
-    if (v.length > 11) v = v.slice(0,11);
-    v = v.replace(/(\d{3})(\d)/, "$1.$2");
-    v = v.replace(/(\d{3})(\d)/, "$1.$2");
-    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    campo.value = v;
-}
+let aluno = null;
+let ultimaBusca = "";
+const status = document.getElementById("statusBusca");
 
-// ----- Formatar Telefone -----
-function formatarTelefone(numero) {
-    numero = numero.replace(/\D/g,'');
-    if (numero.length === 11) {
-        return numero.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-    } else if (numero.length === 10) {
-        return numero.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
-    }
-    return numero;
-}
+/* Máscara CPF + busca automática */
+buscaCpf.addEventListener("input", function(){
 
-// ----- Buscar Aluno -----
-function buscarAluno() {
-    const cpf = document.getElementById("cpf").value.trim();
-    const status = document.getElementById("status");
+  let v = this.value.replace(/\D/g,"");
 
-    if (!cpf) {
-        status.innerHTML = "Digite um CPF.";
-        status.className = "status erro";
-        return;
-    }
+  v = v.replace(/(\d{3})(\d)/,"$1.$2");
+  v = v.replace(/(\d{3})(\d)/,"$1.$2");
+  v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 
-    status.innerHTML = "Buscando...";
-    status.className = "status";
+  this.value = v;
 
-    fetch(`${WEB_APP_URL}?cpf=${cpf}`)
-    .then(response => response.text())
-    .then(text => {
-        let data;
+  const cpfNumerico = v.replace(/\D/g,"");
 
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            status.innerHTML = "Erro: resposta inválida do servidor.";
-            status.className = "status erro";
-            return;
-        }
+  if(cpfNumerico.length === 11 && cpfNumerico !== ultimaBusca){
+    ultimaBusca = cpfNumerico;
+    buscarAluno();
+  }
+});
 
-        if (!data.nome) {
-            status.innerHTML = "Aluno não encontrado.";
-            status.className = "status erro";
-            return;
-        }
+/* Buscar ao apertar ENTER */
+buscaCpf.addEventListener("keypress", function(e){
+  if(e.key === "Enter"){
+    buscarAluno();
+  }
+});
 
-        let nome = data.nome.trim();
-        let telefone = data.telefone ? data.telefone.trim() : "";
+/* Buscar aluno */
+async function buscarAluno(){
 
-        // Se telefone já veio preenchido corretamente
-        if (telefone) {
-            telefone = formatarTelefone(telefone);
-        } else {
-            // Tenta extrair do final do nome
-            const telefoneRegex = /(\(?\d{2}\)?\s?\d{4,5}-?\d{4})$/;
-            const match = nome.match(telefoneRegex);
+  if(!buscaCpf.value){
+    status.textContent = "⚠ Digite um CPF";
+    status.className = "status erro";
+    return;
+  }
 
-            if (match) {
-                telefone = formatarTelefone(match[0]);
-                nome = nome.replace(telefoneRegex, "").trim();
-            }
-        }
+  status.textContent = "Buscando...";
+  status.className = "status";
 
-        document.getElementById("nome").value = nome;
-        document.getElementById("telefone").value = telefone;
-        document.getElementById("curso").value = data.areaInteresse || "";
+  try{
+    const response = await fetch(WEB_APP_URL + "?cpf=" + buscaCpf.value);
+    aluno = await response.json();
 
-        status.innerHTML = "Aluno encontrado!";
-        status.className = "status sucesso";
-    })
-    .catch(err => {
-        console.error(err);
-        status.innerHTML = "Erro ao buscar aluno. Verifique o Web App.";
-        status.className = "status erro";
-    });
-}
-
-// ----- Bolsa -----
-function verificarBolsa() {
-    document.getElementById("bolsaManual").style.display =
-        (document.getElementById("bolsa").value === "Outra") ? "block" : "none";
-}
-
-// ----- Origem -----
-function verificarOrigem() {
-    document.getElementById("origemManual").style.display =
-        (document.getElementById("origem").value === "Outra") ? "block" : "none";
-}
-
-// ----- Gerar Template -----
-function gerarTemplate() {
-    const nome = document.getElementById("nome").value.trim();
-    const candidato = document.getElementById("candidato").value.trim();
-    const curso = document.getElementById("curso").value.trim();
-    const modalidade = document.getElementById("modalidade").value;
-    const primeira = document.getElementById("primeiraMensalidade").value.trim();
-    const bolsaSelect = document.getElementById("bolsa").value;
-    const bolsaManual = document.getElementById("bolsaManual").value.trim();
-    const demais = document.getElementById("demaisMensalidades").value.trim();
-    const origemSelect = document.getElementById("origem").value;
-    const origemManual = document.getElementById("origemManual").value.trim();
-    const telefone = document.getElementById("telefone").value.trim();
-
-    if (!nome || !candidato || !curso || !primeira || !demais) {
-        alert("Preencha todos os campos obrigatórios.");
-        return;
+    if(!aluno || aluno.erro){
+      status.textContent = "❌ Não encontrado";
+      status.className = "status erro";
+      return;
     }
 
-    const bolsaFinal = (bolsaSelect === "Outra") ? bolsaManual : bolsaSelect;
-    const origemFinal = (origemSelect === "Outra") ? origemManual : origemSelect;
+    status.textContent = "✔ Aluno encontrado";
+    status.className = "status sucesso";
 
-    const template = `
-NOME COMPLETO: ${nome}
-CANDIDATO: ${candidato}
-CURSO: ${curso}
-MODALIDADE: ${modalidade}
-PRIMEIRA MENSALIDADE: ${primeira}
-BOLSA: ${bolsaFinal}
-DEMAIS MENSALIDADES: ${demais}
+  }catch{
+    status.textContent = "❌ Erro na conexão";
+    status.className = "status erro";
+  }
+}
+
+/* Mostrar campos extras */
+function verificarBolsa(){
+  bolsaOutra.style.display = bolsa.value === "outra" ? "block" : "none";
+}
+
+function verificarConheceu(){
+  conheceuOutra.style.display = comoConheceu.value === "outra" ? "block" : "none";
+}
+
+/* Máscara monetária */
+function formatarMoeda(campo){
+  campo.addEventListener("input", function(){
+    let valor = this.value.replace(/\D/g,"");
+    if(valor === ""){
+      this.value = "";
+      return;
+    }
+    valor = (parseInt(valor,10)/100).toFixed(2).replace(".",",");
+    this.value = valor;
+  });
+}
+
+formatarMoeda(primeiraMensalidade);
+formatarMoeda(demaisMensalidades);
+
+/* Templates permanecem iguais ao seu original */
+function gerarTemplate1(){
+  if(!aluno){
+    status.textContent = "⚠ Busque um aluno primeiro";
+    status.className = "status erro";
+    return;
+  }
+
+  resultado.value =
+`NOME COMPLETO: ${aluno.Nome}
+CANDIDATO: ${aluno.Nome}
+CURSO: ${aluno.Curso}
+MODALIDADE: ${modalidade.value}
+PRIMEIRA MENSALIDADE: ${primeiraMensalidade.value}
+BOLSA: ${bolsa.value === "outra" ? bolsaOutra.value : bolsa.value}
+DEMAIS MENSALIDADES: ${demaisMensalidades.value}
 POLO: Caucaia
-COMO NOS CONHECEU: ${origemFinal}
-TELEFONE COM DDD: ${telefone}
+COMO NOS CONHECEU: ${comoConheceu.value === "outra" ? conheceuOutra.value : comoConheceu.value}
+TELEFONE COM DDD: ${aluno.Telefone}
 TUTOR: Fabricio Benigno 🥷
 
-Rede Pocci 🚀🚀
-`;
+Rede Pocci 🚀🚀`;
 
-    document.getElementById("resultado").value = template.trim();
+  status.textContent = "✔ Template 1 gerado";
+  status.className = "status sucesso";
 }
 
-// ----- Copiar Template -----
-function copiar() {
-    const texto = document.getElementById("resultado").value;
-    if (!texto) return alert("Nada para copiar.");
+function gerarTemplate2(){
+  if(!aluno){
+    status.textContent = "⚠ Busque um aluno primeiro";
+    status.className = "status erro";
+    return;
+  }
 
-    navigator.clipboard.writeText(texto)
-    .then(() => alert("Template copiado!"))
-    .catch(() => alert("Erro ao copiar."));
+  let dataFormatada = "";
+  if(aluno["Data de Nascimento"]){
+    dataFormatada = new Date(aluno["Data de Nascimento"]).toLocaleDateString("pt-BR");
+  }
+
+  resultado.value =
+`Nome: ${aluno.Nome}
+Telefone: ${aluno.Telefone}
+CPF: ${aluno.CPF}
+Email: ${aluno.Email}
+Data de Nascimento: ${dataFormatada}
+Endereço: ${aluno.Endereço}
+Cep: ${aluno.CEP}
+Curso: ${aluno.Curso}`;
+
+  status.textContent = "✔ Template 2 gerado";
+  status.className = "status sucesso";
+}
+
+function copiarTemplate(){
+  if(!resultado.value){
+    status.textContent = "⚠ Nada para copiar";
+    status.className = "status erro";
+    return;
+  }
+
+  resultado.select();
+  document.execCommand("copy");
+
+  status.textContent = "✔ Copiado com sucesso";
+  status.className = "status sucesso";
+
+  setTimeout(()=> status.textContent="",3000);
 }
 </script>
 
